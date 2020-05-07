@@ -318,10 +318,12 @@ class Mod(Cog):
             await channel.send('Read the help text.')
             return
 
-        await channel.purge(limit=limit)
+        purged = await channel.purge(limit=limit)
+        with purged_data as outfile:
+            json.dump(purged, outfile)
         msg = f"🗑 **Purged**: {ctx.author.mention} purged {limit} "\
               f"messages in {channel.mention}."
-        await log_channel.send(msg)
+        await log_channel.send(msg, files=purged_data)
 
     @commands.guild_only()
     @commands.check(check_if_staff)
