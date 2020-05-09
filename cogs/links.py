@@ -16,10 +16,15 @@ class Links(Cog):
         """Link to the Pegaswitch repo"""
         await ctx.send("https://github.com/reswitched/pegaswitch")
 
-    @commands.command(hidden=True, aliases=["atmos"])
+    @commands.command(hidden=True, aliases=["atmos", "ams"])
     async def atmosphere(self, ctx):
         """Link to the Atmosphere repo"""
         await ctx.send("https://github.com/atmosphere-nx/atmosphere")
+
+    @commands.command(hidden=True, aliases=["bootloader"])
+    async def hekate(self, ctx):
+        """Link to the Hekate repo"""
+        await ctx.send("https://github.com/CTCaer/hekate") 
 
     @commands.command(hidden=True, aliases=["xyproblem"])
     async def xy(self, ctx):
@@ -34,34 +39,55 @@ class Links(Cog):
     @commands.command(hidden=True, aliases=["guides", "link"])
     async def guide(self, ctx):
         """Link to the guide(s)"""
-        await ctx.send("**Generic starter guides:**\n"
-                       "AtlasNX's Guide: "
-                       "<https://guide.teamatlasnx.com>\n"
-                       "\n"
-                       "**Specific guides:**\n"
-                       "Manually Updating/Downgrading (with HOS): "
-                       "<https://guide.sdsetup.com/usingcfw/manualupgrade>\n"
-                       "Manually Repairing/Downgrading (without HOS): "
-                       "<https://guide.sdsetup.com/usingcfw/manualchoiupgrade>\n"
-                       "How to get started developing Homebrew: "
-                       "<https://gbatemp.net/threads/"
-                       "tutorial-switch-homebrew-development.507284/>\n"
-                       "Getting full RAM in homebrew without NSPs: "
-                       "as of Atmosphere 0.8.6, hold R while opening any game.")
+
+        message_text=("**Generic starter guides:**\n"
+                      "AtlasNX's Guide: "
+                      "<https://switch.homebrew.guide>\n"
+                      "\n"
+                      "**Specific guides:**\n"
+                      "Manually Updating/Downgrading (with HOS): "
+                      "<https://switch.homebrew.guide/usingcfw/manualupgrade>\n"
+                      "Manually Repairing/Downgrading (without HOS): "
+                      "<https://switch.homebrew.guide/usingcfw/manualchoiupgrade>\n"
+                      "Setting up EmuMMC (Windows): "
+                      "<https://switch.homebrew.guide/emummc/windows>\n"
+                      "Setting up EmuMMC (Linux): "
+                      "<https://switch.homebrew.guide/emummc/linux>\n"
+                      "Setting up EmuMMC (Mac): "
+                      "<https://switch.homebrew.guide/emummc/mac>\n"
+                      "How to get started developing Homebrew: "
+                      "<https://switch.homebrew.guide/homebrew_dev/introduction>\n"
+                      "\n")
+
+        try:
+            support_faq_channel = self.bot.get_channel(config.support_faq_channel)
+            if support_faq_channel is None:
+                message_text += "Check out #support-faq for additional help."
+            else:
+                message_text += f"Check out {support_faq_channel.mention} for additional help."
+        except AttributeError:
+            message_text += "Check out #support-faq for additional help."
+        
+        await ctx.send(message_text)
 
     @commands.command(hidden=True, aliases=["patron"])
     async def patreon(self, ctx):
         """Link to the patreon"""
-        await ctx.send("https://patreon.teamatlasnx.com")    
+        await ctx.send("https://patreon.teamatlasnx.com")
+
+    @commands.command(hidden=True, aliases=["coffee"])
+    async def kofi(self, ctx):
+        """Link to Ko-fi"""
+        await ctx.send("https://kofi.teamatlasnx.com")
 
     @commands.command(hidden=True, aliases=["sdfiles"])
     async def kosmos(self, ctx):
-        """Link to the Atmosphere repo"""
-        await ctx.send("https://github.com/atlasnx/kosmos")
+        """Link to the latest Kosmos release"""
+        await ctx.send("https://github.com/AtlasNX/Kosmos/releases/latest")
 
     @commands.command(hidden=True, aliases=["sd"])
     async def sdsetup(self, ctx):
-        """Link to the Atmosphere repo"""
+        """Link to SD Setup"""
         await ctx.send("https://sdsetup.com")
 
     @commands.command()

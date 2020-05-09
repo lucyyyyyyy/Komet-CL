@@ -46,10 +46,6 @@ staff_role_ids = [364647829248933888,  # Team role in ReSwitched
                   360138163156549632,  # Admin role in ReSwitched
                   287289529986187266]  # Wizard role in ReSwitched
 
-kek_role_ids = [578239919542239243,  # Kekdad role in AtlasNX
-                574670558910742531,  # Kekmon role in AtlasNX
-                594592298763943977]  # Kekreport role in AtlasNX
-
 # Various log channels used to log bot and guild's activity
 # You can use same channel for multiple log types
 # Spylog channel logs suspicious messages or messages by members under watch
@@ -59,6 +55,11 @@ botlog_channel = 529070282409771048  # bot-logs channel in ReSwitched
 modlog_channel = 542114169244221452  # mod-logs channel in ReSwitched
 spylog_channel = 548304839294189579  # spy channel in ReSwitched
 welcome_channel = 326416669058662401  # newcomers channel in ReSwitched
+
+rules_channel = 567353505367719947  # rules channel in AtlasNX
+support_faq_channel = 628596855470555167  # support-faq channel in AtlasNX
+list_files_channel = 680792242188845079 # Used for uploading raw text files for list editing.
+modmail_channel = 0 # Modlog channel in AtlasNX
 
 # These channel entries are used to determine which roles will be given
 # access when we unmute on them
@@ -73,6 +74,10 @@ community_channels = [269333940928512010,
                       404722395845361668,
                       435687501068501002,
                       286612533757083648]  # Channels requiring community role
+
+# Channels that are lists that are controlled by the lists cog.
+list_channels = [680129341958783086,
+                 680129375705890839]
 
 # Controls which roles are blocked during lockdown
 lockdown_configs = {

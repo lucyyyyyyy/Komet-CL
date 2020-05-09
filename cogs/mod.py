@@ -6,7 +6,9 @@ from helpers.checks import check_if_staff, check_if_bot_manager
 from helpers.userlogs import userlog
 from helpers.restrictions import add_restriction, remove_restriction
 import io
-
+from typing import Optional
+import json
+from datetime import timezone
 
 class Mod(Cog):
     def __init__(self, bot):
@@ -193,7 +195,7 @@ class Mod(Cog):
     @commands.command(aliases=["softban"])
     async def hackban(self, ctx, target: int, *, reason: str = ""):
         """Bans a user with their ID, doesn't message them, staff only."""
-        target_user = await self.bot.get_user_info(target)
+        target_user = await self.bot.fetch_user(target)
         target_member = ctx.guild.get_member(target)
         # Hedge-proofing the code
         if target == ctx.author.id:
@@ -264,6 +266,9 @@ class Mod(Cog):
         if role not in config.named_roles:
             return await ctx.send("No such role! Available roles: " +
                                   ','.join(config.named_roles))
+        
+        if target.id == 200968036151328769 and config.named_roles[role] == 594592298763943977:
+            return await ctx.send(f"{target.display_name} doesn't get {role}")
 
         log_channel = self.bot.get_channel(config.log_channel)
         target_role = ctx.guild.get_role(config.named_roles[role])
@@ -312,11 +317,22 @@ class Mod(Cog):
         if sanity != 'yes_im_fucking_sure' and limit > config.purge_warning_limit:
             await channel.send('Read the help text.')
             return
-
-        await channel.purge(limit=limit)
+        
+        purged_data=[]
+        for message in await channel.purge(limit=limit):
+            purged_data.append({
+                "author": message.author.name,
+                "content": message.content
+            })
+        purged_json = json.dumps(purged_data)
+        purged_file = discord.File(
+            io.BytesIO(purged_json.encode('utf-8')),
+            filename="purged_messages.json"
+        )
+        
         msg = f"🗑 **Purged**: {ctx.author.mention} purged {limit} "\
               f"messages in {channel.mention}."
-        await log_channel.send(msg)
+        await log_channel.send(msg, file=purged_file)
 
     @commands.guild_only()
     @commands.check(check_if_staff)
@@ -370,6 +386,8 @@ class Mod(Cog):
         if warn_count >= 5:  # just in case
             await target.ban(reason="exceeded warn limit",
                              delete_message_days=0)
+            userlog(target.id, ctx.author, f"exceeded warn limit - {reason}",
+                             "bans", target.name)
         await ctx.send(f"{target.mention} warned. "
                        f"User has {warn_count} warning(s).")
 
@@ -426,6 +444,48 @@ class Mod(Cog):
 
     @commands.guild_only()
     @commands.check(check_if_staff)
+    @commands.command(aliases=["setlistening", "setmusic"])
+    async def listening(self, ctx, *, music: str = ""):
+        """Sets the bot's currently listening activity, staff only.
+
+        Just send .listening to wipe the activity."""
+        if music:
+            await self.bot.change_presence(activity=discord.Activity(name=music, type=discord.ActivityType.listening))
+        else:
+            await self.bot.change_presence(activity=None)
+
+        await ctx.send("Successfully set music.")
+
+    @commands.guild_only()
+    @commands.check(check_if_staff)
+    @commands.command(aliases=["setwatching", "setvideo"])
+    async def watching(self, ctx, *, video: str = ""):
+        """Sets the bot's currently watching activity, staff only.
+
+        Just send .watching to wipe the activity."""
+        if video:
+            await self.bot.change_presence(activity=discord.Activity(name=video, type=discord.ActivityType.watching))
+        else:
+            await self.bot.change_presence(activity=None)
+
+        await ctx.send("Successfully set video.")
+
+    @commands.guild_only()
+    @commands.check(check_if_staff)
+    @commands.command(aliases=["setstreaming"])
+    async def streaming(self, ctx, *, game: str = ""):
+        """Sets the bot's currently streaming activity, staff only.
+
+        Just send .streaming to wipe the activity."""
+        if game:
+            await self.bot.change_presence(activity=discord.Activity(name=game, type=discord.ActivityType.streaming))
+        else:
+            await self.bot.change_presence(activity=None)
+
+        await ctx.send("Successfully set game.")
+
+    @commands.guild_only()
+    @commands.check(check_if_staff)
     @commands.command(aliases=["setbotnick", "botnick", "robotnick"])
     async def botnickname(self, ctx, *, nick: str = ""):
         """Sets the bot's nickname, staff only.
@@ -439,6 +499,53 @@ class Mod(Cog):
 
         await ctx.send("Successfully set bot nickname.")
 
+
+    async def _getdms(self, target: discord.Member, limit: Optional[int] = None):
+        channel = target.dm_channel
+        if channel == None:
+            channel = await target.create_dm()
+        
+        messages = []
+        async for message in channel.history(limit = None, oldest_first = True):
+            messages.append({
+                'author': f'{message.author.name} ({message.author.id})',
+                'content': message.content,
+                'datetime': message.created_at.replace(tzinfo = timezone.utc).timestamp()
+            })
+
+        if len(messages) == 0:
+            return ''
+
+        return json.dumps(messages)
+
+    @commands.guild_only()
+    @commands.check(check_if_staff)
+    @commands.command()
+    async def getdms(self, ctx, target: discord.Member, limit: Optional[int] = None):
+        """Gets all direct messages the user has had with Komet."""
+
+        dms = await self._getdms(target, limit)
+        if dms == '':
+            await ctx.send('User has no DMs with Komet.')
+            return
+
+        file = discord.File(io.BytesIO(dms.encode('utf-8')), filename = f'{target.id}.json')
+        await ctx.send(file = file)
+
+    @commands.guild_only()
+    @commands.check(check_if_staff)
+    @commands.command()
+    async def getdmsid(self, ctx, user_id: int, limit: Optional[int] = None):
+        """Gets all direct messages the user has had with Komet."""
+
+        target = ctx.guild.get_member(user_id)
+        dms = await self._getdms(target, limit)
+        if dms == '':
+            await ctx.send('User has no DMs with Komet.')
+            return
+
+        file = discord.File(io.BytesIO(dms.encode('utf-8')), filename = f'{user_id}.json')
+        await ctx.send(file = file)
 
 def setup(bot):
     bot.add_cog(Mod(bot))
